@@ -181,8 +181,11 @@ When `evil' is loaded, enter instert state."
   (deft-new-file-named zdName)
   (kill-new zdName)
   (unless empty (zd-insert-title))
+  (unless empty (zd-insert-footer))
   (save-buffer)
-  (when (featurep 'evil) (evil-insert-state))))
+;; KC
+  (when (and (zd-new-file-use-insert-state) (featurep 'evil)) (evil-insert-state))))
+;; KC_END
 
 (defun zd-new-file-and-link (str)
   "Insert generated id with `zd-id-format' appended with STR.
@@ -322,6 +325,28 @@ Empty by default.
 Don't forget to add `\\n' at the beginning to start a new line."
   :type 'string
   :group 'zetteldeft)
+
+;; KC
+(defun zd-insert-footer ()
+  "Insert footer of the current zd note:"
+  (interactive)
+  (zd--check)
+  (insert zd-footer-data))
+
+(defcustom zd-footer-data ""
+  "String inserted below title when `zd-insert-footer' is called.
+Empty by default.
+Don't forget to add `\\n' at the beginning to start a new line."
+  :type 'string
+  :group 'zetteldeft)
+
+(defcustom zd-new-file-use-insert-state t
+  "Whether or not to use insert state or not
+True by default."
+  :type 'boolean
+  :group 'zetteldeft)
+
+;; KC_END
 
 (defun zd-count-words ()
   "Prints total number of words and notes in the minibuffer."
