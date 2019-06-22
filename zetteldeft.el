@@ -184,7 +184,7 @@ When `evil' is loaded, enter instert state."
   (unless empty (zd-insert-footer))
   (save-buffer)
 ;; KC
-  (when (and (zd-new-file-use-insert-state) (featurep 'evil)) (evil-insert-state))))
+  (when (and zd-new-file-use-insert-state (featurep 'evil)) (evil-insert-state))))
 ;; KC_END
 
 (defun zd-new-file-and-link (str)
