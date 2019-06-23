@@ -167,6 +167,7 @@ This variable should be a string containing only one character."
       (deft-find-all-files-no-prefix))))
   (insert (concat zd-link-indicator (file-name-base file))))
 
+;; KC
 (defun zd-new-file (str &optional empty)
   "Create a new deft file.
 Filename is `zd-id-format' appended by STR.
@@ -177,13 +178,20 @@ and the file name (without extension) is added to the kill ring.
 When `evil' is loaded, enter instert state."
   (interactive (list (read-string "name: ")))
   (let* ((zdId (zd-generate-id))
-         (zdName (concat zdId " " str)))
+         (zdName (concat zdId " " str))
+	 (zdPos 1)
+	 (zdMetaData (zd-get-meta)))
   (deft-new-file-named zdName)
   (kill-new zdName)
+  ;; Handle inserts
   (unless empty (zd-insert-title))
+  ;; Store the position of the middle of the file.
+  (insert "\n\n")
+  (setq zdPos (point))
   (unless empty (zd-insert-footer))
+  (when (and (not empty) zdMetaData) (insert zdMetaData))
   (save-buffer)
-;; KC
+  (goto-char zdPos)
   (when (and zd-new-file-use-insert-state (featurep 'evil)) (evil-insert-state))))
 ;; KC_END
 
@@ -346,6 +354,24 @@ True by default."
   :type 'boolean
   :group 'zetteldeft)
 
+(defcustom zd-meta-note-types ()
+  "List of options for note types
+Empty by default."
+  :type 'list
+  :group 'zetteldeft)
+
+(defun zd-get-meta ()
+  "Inserts the meta data for the note"
+  (interactive)
+  (let ((metaData nil))
+    (when zd-meta-note-types
+      (setq metaData
+	    (concat "\n#+Note_Type: " (completing-read "Note type:" zd-meta-note-types) "\n"))
+	)
+    ;; Return metaData
+    metaData
+    )
+  )
 ;; KC_END
 
 (defun zd-count-words ()
