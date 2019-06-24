@@ -434,6 +434,64 @@ Throws an error when either none or multiple files are found."
           (push foundTag zd-tag-list)))
       ;; Remove found tag from buffer
       (delete-region (point) (re-search-backward zd-tag-format)))))
+;; KC
+(defcustom zd-tag-cache-file nil
+  "A file path to the tag cache. 
+This is required in order to use zd-insert-tag"
+  :type 'string
+  :group 'zetteldeft
+  )
+
+(defun zd-insert-tag ()
+  "Insert tag from list of tags. Will only work if "
+  (interactive)
+  (if zd-tag-cache-file
+    (let (tagList currentTag)
+	(with-temp-buffer
+	    (insert-file-contents zd-tag-cache-file)
+	    (setq tagList (split-string (buffer-string) "\n" t))
+	    ;; Get tag from user and give options from our tag list
+	    ;; Also make sure we confirm if the user has a new tag
+	    (setq currentTag (completing-read "Tag: " tagList nil 'confirm))
+	    ;; Check if this is new tag. If it is then add it to the file
+	    (unless (member currentTag tagList)
+	      ;; Go to the end of the buffer
+	      (goto-char (point-max))
+	      ;; Insert the new tag to the current buffer
+	      (insert (concat "\n" currentTag))
+	      ;; Write the entire current buffer to the zd-tag-cache-file
+	      (write-region 1 (point-max) zd-tag-cache-file)
+	      (message "Added new tag to tag cache: %s" currentTag)
+	      )
+	    )
+	 (if currentTag
+	    (let ((previousPoint (point)) tagStart originalTagStart tagEnd)
+	    (goto-char (point-max))
+	    (setq tagStart (search-backward "* Tags"))
+	    (goto-char tagStart)
+	    (search-forward (concat "** #" currentTag) nil t)
+	    (setq originalTagStart (point))
+	    (goto-char tagStart)
+	    (org-end-of-subtree)
+	    (setq tagEnd (point))
+
+	    (if (and (< originalTagStart tagEnd) (eq tagStart originalTagStart))
+		(progn
+		    (insert (concat "\n** #" currentTag))
+		    (message "Insert tag: %s" currentTag)
+		)
+		(message "Already have: %s" currentTag)
+		)
+
+	    (goto-char previousPoint)
+	    )
+	    (message "No tag selected.")
+	  )
+    )
+    (message "No zd-tag-cache-file specified. Unable to insert tags")
+    )
+  )
+;; KC_END
 
 (defun zd-insert-list-links (zdSrch)
   "Search for ZDSRCH and insert a list of zetteldeft links to all results."
